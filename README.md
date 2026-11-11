@@ -2,6 +2,8 @@
 
 **Todos los eventos por la biodiversidad, en un solo lugar.**
 
+🌐 **Demo:** https://bioconecta-henna.vercel.app
+
 Prototipo funcional (MVP) de una plataforma web para encontrar, publicar e inscribirse en actividades
 ambientales en Barranquilla y su área metropolitana. Proyecto final de la asignatura
 **Biodiversidad y Sociedad** — Universidad del Norte, 2026.
@@ -118,9 +120,16 @@ solo envía a miembros del equipo). En **Authentication → URL Configuration**,
 
 ## Despliegue
 
-1. Importa el repositorio en [Vercel](https://vercel.com/new).
-2. Agrega las variables `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `NEXT_PUBLIC_SITE_URL`.
-3. Despliega. Agrega la URL resultante en Supabase → Authentication → URL Configuration.
+El demo está en Vercel (proyecto `blpx/bioconecta`), con las variables `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `NEXT_PUBLIC_SITE_URL` configuradas.
+
+```bash
+vercel deploy --prod --scope blpx   # publicar una nueva versión desde la carpeta local
+```
+
+Para que cada `git push` a `main` despliegue automáticamente, agrega GitHub como método de inicio de sesión
+en Vercel (Account Settings → Authentication) y ejecuta `vercel git connect`.
+Recuerda poner la URL de producción en Supabase → Authentication → URL Configuration (Site URL).
 
 ## Accesibilidad
 
