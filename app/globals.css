@@ -1,0 +1,229 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-figtree), 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), 'Fraunces', ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-coral: var(--coral);
+  --color-coral-soft: var(--coral-soft);
+  --color-coral-ink: var(--coral-ink);
+  --color-manglar: var(--manglar);
+  --color-cienaga: var(--cienaga);
+  --color-bosque: var(--bosque);
+  --color-arena: var(--arena);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  color-scheme: light;
+  --radius: 0.75rem;
+
+  /* Marca provisional BioConecta */
+  --manglar: #0e4d3a;
+  --cienaga: #1f6f7f;
+  --bosque: #c98a1b;
+  --coral: #d9604a;
+  --coral-soft: #f8e2dc;
+  --coral-ink: #8f3322;
+  --arena: #f6f1e6;
+
+  --background: #f6f1e6;
+  --foreground: #13221c;
+  --card: #fffdf8;
+  --card-foreground: #13221c;
+  --popover: #fffdf8;
+  --popover-foreground: #13221c;
+  --primary: #0e4d3a;
+  --primary-foreground: #fffdf8;
+  --secondary: #1f6f7f;
+  --secondary-foreground: #ffffff;
+  --accent: #c98a1b;
+  --accent-foreground: #13221c;
+  --muted: #ebe4d2;
+  --muted-foreground: #4c5b54;
+  --destructive: #a8321f;
+  --border: #ddd3bd;
+  --input: #7b8a82;
+  --ring: #1f6f7f;
+
+  /* Colores por tipo de evento (texto sobre tinte) */
+  --type-charla: #1f6f7f;
+  --type-charla-ink: #14505d;
+  --type-taller: #c98a1b;
+  --type-taller-ink: #6f4800;
+  --type-voluntariado: #d9604a;
+  --type-voluntariado-ink: #8f3322;
+  --type-salida_de_campo: #0e4d3a;
+  --type-salida_de_campo-ink: #0e4d3a;
+  --type-siembra: #5e8c31;
+  --type-siembra-ink: #38561a;
+  --type-limpieza: #2f6db5;
+  --type-limpieza-ink: #1f4e8a;
+}
+
+.dark {
+  color-scheme: dark;
+  --coral-soft: #3b1f1a;
+  --coral-ink: #f4a392;
+
+  --background: #0c1713;
+  --foreground: #efe9d9;
+  --card: #12211b;
+  --card-foreground: #efe9d9;
+  --popover: #12211b;
+  --popover-foreground: #efe9d9;
+  --primary: #7fd1b0;
+  --primary-foreground: #0a1f18;
+  --secondary: #1f6f7f;
+  --secondary-foreground: #ffffff;
+  --accent: #e0a53a;
+  --accent-foreground: #13221c;
+  --muted: #1b2e26;
+  --muted-foreground: #a9b8af;
+  --destructive: #f08a78;
+  --border: #284037;
+  --input: #7f9488;
+  --ring: #7cccdb;
+
+  --type-charla-ink: #8ad3e1;
+  --type-taller-ink: #ecbb68;
+  --type-voluntariado-ink: #f4a392;
+  --type-salida_de_campo-ink: #85d3b4;
+  --type-siembra-ink: #b0d884;
+  --type-limpieza-ink: #9cc2f2;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    line-height: 1.55;
+  }
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100, 'WONK' 0;
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Textura de curvas de nivel (fondo orgánico) */
+.contour-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520' viewBox='0 0 520 520' fill='none' stroke='%230E4D3A' stroke-opacity='0.09' stroke-width='1.2'%3E%3Cpath d='M-20 120C60 60 130 150 210 110S350 40 430 100 540 90 560 70'/%3E%3Cpath d='M-20 160C60 100 130 190 210 150S350 80 430 140 540 130 560 110'/%3E%3Cpath d='M-20 200C60 140 130 230 210 190S350 120 430 180 540 170 560 150'/%3E%3Cpath d='M-20 360C70 310 150 400 240 350S380 300 450 360 540 350 560 330'/%3E%3Cpath d='M-20 400C70 350 150 440 240 390S380 340 450 400 540 390 560 370'/%3E%3Cpath d='M-20 440C70 390 150 480 240 430S380 380 450 440 540 430 560 410'/%3E%3Cpath d='M-20 480C70 430 150 520 240 470S380 420 450 480 540 470 560 450'/%3E%3C/svg%3E");
+  background-size: 520px 520px;
+}
+.dark .contour-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520' viewBox='0 0 520 520' fill='none' stroke='%237FD1B0' stroke-opacity='0.08' stroke-width='1.2'%3E%3Cpath d='M-20 120C60 60 130 150 210 110S350 40 430 100 540 90 560 70'/%3E%3Cpath d='M-20 160C60 100 130 190 210 150S350 80 430 140 540 130 560 110'/%3E%3Cpath d='M-20 200C60 140 130 230 210 190S350 120 430 180 540 170 560 150'/%3E%3Cpath d='M-20 360C70 310 150 400 240 350S380 300 450 360 540 350 560 330'/%3E%3Cpath d='M-20 400C70 350 150 440 240 390S380 340 450 400 540 390 560 370'/%3E%3Cpath d='M-20 440C70 390 150 480 240 430S380 380 450 440 540 430 560 410'/%3E%3Cpath d='M-20 480C70 430 150 520 240 470S380 420 450 480 540 470 560 450'/%3E%3C/svg%3E");
+}
+
+/* Leaflet */
+.leaflet-container {
+  font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  border-radius: inherit;
+  z-index: 0;
+}
+.leaflet-container:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--card);
+  color: var(--card-foreground);
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 1rem;
+}
+.leaflet-popup-content {
+  margin: 0.75rem 0.9rem;
+  line-height: 1.4;
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--muted-foreground);
+  width: 28px;
+  height: 28px;
+  font-size: 22px;
+  line-height: 28px;
+}
+.bc-marker {
+  background: transparent;
+  border: 0;
+}
+.bc-marker > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px 9999px 9999px 4px;
+  transform: rotate(-45deg);
+  border: 3px solid #fffdf8;
+  box-shadow: 0 2px 6px rgb(19 34 28 / 0.35);
+}
+.bc-marker > span > i {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  background: #fffdf8;
+}
+.bc-marker:focus-visible > span,
+.bc-marker.leaflet-marker-icon:focus > span {
+  outline: 3px solid #13221c;
+  outline-offset: 2px;
+}
