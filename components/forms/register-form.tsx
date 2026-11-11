@@ -103,10 +103,12 @@ export function RegisterForm({ next }: { next?: string }) {
                   <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <Icon className="size-5" aria-hidden="true" />
                   </span>
-                  <RadioGroupItem value={value} id={id} />
+                  <RadioGroupItem value={value} id={id} aria-label={label} aria-describedby={`${id}-desc`} />
                 </span>
                 <span className="font-display text-lg font-semibold">{label}</span>
-                <span className="text-sm text-muted-foreground">{description}</span>
+                <span id={`${id}-desc`} className="text-sm text-muted-foreground">
+                  {description}
+                </span>
               </label>
             )
           })}
