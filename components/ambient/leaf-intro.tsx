@@ -26,8 +26,11 @@ const LEAVES: Leaf[] = [
   { x: 33, y: 34, w: 34, r: -8, c: '#2A6E52', side: 'c', d: 230 },
 ]
 
-/** Marca la sesión: si ya se vio la intro, se oculta antes de pintar (evita parpadeos). */
-export const INTRO_SCRIPT = `try{var k='bc-intro';if(sessionStorage.getItem(k)){document.documentElement.setAttribute('data-intro','seen')}else{sessionStorage.setItem(k,'1')}}catch(e){document.documentElement.setAttribute('data-intro','seen')}`
+/**
+ * Marca la sesión: si ya se vio la intro, se oculta antes de pintar (evita parpadeos).
+ * Seguro adicional: pase lo que pase, a los 3 s la capa se elimina.
+ */
+export const INTRO_SCRIPT = `(function(){var d=document.documentElement;function done(){d.setAttribute('data-intro','seen')}try{var k='bc-intro';if(sessionStorage.getItem(k)){done()}else{sessionStorage.setItem(k,'1');setTimeout(done,3000)}}catch(e){done()}})()`
 
 export function LeafIntro() {
   return (

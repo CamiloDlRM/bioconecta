@@ -236,13 +236,17 @@
    prefers-reduced-motion.
    ===================================================================== */
 
+/* Oculta por defecto: solo se ve mientras su animación corre (fill both). Si un
+   navegador no ejecuta animaciones, la capa nunca tapa la página. */
 .leaf-intro {
   position: fixed;
   inset: 0;
   z-index: 70;
   overflow: hidden;
   pointer-events: none;
-  animation: leaf-intro-hide 0.01s linear 1.75s forwards;
+  visibility: hidden;
+  opacity: 0;
+  animation: leaf-intro-life 1.75s linear both;
 }
 [data-intro='seen'] .leaf-intro {
   display: none;
@@ -290,8 +294,13 @@
     opacity: 0;
   }
 }
-@keyframes leaf-intro-hide {
-  to {
+@keyframes leaf-intro-life {
+  0%,
+  96% {
+    visibility: visible;
+    opacity: 1;
+  }
+  100% {
     visibility: hidden;
     opacity: 0;
   }
