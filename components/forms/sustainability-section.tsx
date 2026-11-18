@@ -151,7 +151,12 @@ export function SustainabilitySection() {
         name="includeSustainability"
         render={({ field }) => (
           <label className="flex cursor-pointer items-start gap-3 text-sm font-medium">
-            <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(v === true)} className="mt-0.5" />
+            <Checkbox
+              checked={field.value}
+              onCheckedChange={(v) => field.onChange(v === true)}
+              className="mt-0.5"
+              aria-label="Incluir la ficha de sostenibilidad en la página del evento"
+            />
             <span>Incluir la ficha de sostenibilidad en la página del evento</span>
           </label>
         )}

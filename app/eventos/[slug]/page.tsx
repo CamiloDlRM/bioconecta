@@ -12,6 +12,7 @@ import {
   Monitor,
   Navigation,
   Pencil,
+  Projector,
   ShieldCheck,
   Ticket,
   User,
@@ -259,7 +260,17 @@ export default async function EventDetailPage({ params }: { params: Promise<Para
                     <Pencil aria-hidden="true" />
                     Editar
                   </Link>
+                  <Link
+                    href={`/eventos/${event.slug}/proyector`}
+                    className={cn(buttonVariants({ size: 'sm', variant: 'outline' }))}
+                  >
+                    <Projector aria-hidden="true" />
+                    Modo proyector
+                  </Link>
                 </div>
+                <p className="text-xs text-pretty text-muted-foreground">
+                  El modo proyector muestra en pantalla grande las fotos que suben los asistentes, con un QR para unirse.
+                </p>
               </div>
             )}
             <div className="rounded-2xl border border-border bg-card p-5">

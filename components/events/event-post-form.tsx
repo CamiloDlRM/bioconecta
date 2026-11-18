@@ -8,10 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { createEventPost } from '@/lib/actions'
+import { prepareImage, PrepareImageError } from '@/lib/prepare-image'
 
 const MAX_BODY = 1000
-const MAX_BYTES = 5 * 1024 * 1024
-const TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 export function EventPostForm({ eventId }: { eventId: number }) {
   const [pending, startTransition] = useTransition()
@@ -20,6 +19,7 @@ export function EventPostForm({ eventId }: { eventId: number }) {
   const [preview, setPreview] = useState<string | null>(null)
   const [alt, setAlt] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [preparing, setPreparing] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -35,22 +35,23 @@ export function EventPostForm({ eventId }: { eventId: number }) {
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0] ?? null
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const input = e.target
+    const f = input.files?.[0] ?? null
     setError(null)
     if (!f) return clearImage()
-    if (!TYPES.includes(f.type)) {
-      setError('La foto debe ser JPG, PNG o WebP.')
-      e.target.value = ''
-      return
+    setPreparing(true)
+    try {
+      // Reduce las fotos pesadas del celular y borra su ubicación GPS antes de subirlas
+      const ready = await prepareImage(f)
+      setFile(ready)
+      setPreview(URL.createObjectURL(ready))
+    } catch (err) {
+      setError(err instanceof PrepareImageError ? err.message : 'No pudimos preparar la foto. Prueba con otra.')
+      input.value = ''
+    } finally {
+      setPreparing(false)
     }
-    if (f.size > MAX_BYTES) {
-      setError('La foto no puede pesar más de 5 MB.')
-      e.target.value = ''
-      return
-    }
-    setFile(f)
-    setPreview(URL.createObjectURL(f))
   }
 
   function submit(e: React.FormEvent) {
@@ -129,19 +130,25 @@ export function EventPostForm({ eventId }: { eventId: number }) {
             htmlFor="post-image"
             className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-border px-4 text-sm font-semibold text-primary hover:bg-muted has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50"
           >
-            <ImagePlus className="size-4" aria-hidden="true" />
-            Agregar una foto
+            {preparing ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <ImagePlus className="size-4" aria-hidden="true" />
+            )}
+            {preparing ? 'Preparando la foto…' : 'Agregar una foto'}
             <input
               ref={fileRef}
               id="post-image"
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/*"
               onChange={onFile}
+              disabled={preparing}
               className="sr-only"
             />
           </label>
           <p className="mt-2 text-sm text-muted-foreground">
-            JPG, PNG o WebP de máximo 5 MB. Comparte solo fotos en las que las personas estén de acuerdo en aparecer.
+            Puedes subir la foto directo del celular: la reducimos automáticamente y le quitamos la ubicación GPS.
+            Comparte solo fotos en las que las personas estén de acuerdo en aparecer.
           </p>
         </div>
       )}
@@ -153,7 +160,7 @@ export function EventPostForm({ eventId }: { eventId: number }) {
       )}
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending || preparing}>
           {pending ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Send aria-hidden="true" />}
           {pending ? 'Publicando…' : 'Publicar'}
         </Button>

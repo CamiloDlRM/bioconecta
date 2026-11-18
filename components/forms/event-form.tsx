@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { createEvent, updateEvent } from '@/lib/actions'
+import { prepareImage, PrepareImageError } from '@/lib/prepare-image'
 import { EVENT_TYPES, MODALITY_LABELS } from '@/lib/event-types'
 import { emptyEventForm, eventFormSchema, eventToFormValues, type EventFormValues } from '@/lib/validation'
 import type { EventItem, EventStatus } from '@/lib/types'
@@ -32,6 +33,7 @@ export function EventForm({ event, organizerName }: EventFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [imageError, setImageError] = useState<string | null>(null)
   const [removeImage, setRemoveImage] = useState(false)
+  const [preparingImage, setPreparingImage] = useState(false)
 
   useEffect(() => {
     return () => {
@@ -39,26 +41,27 @@ export function EventForm({ event, organizerName }: EventFormProps) {
     }
   }, [previewUrl])
 
-  function onImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null
+  async function onImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const input = e.target
+    const file = input.files?.[0] ?? null
     setImageError(null)
     if (!file) {
       setImageFile(null)
       setPreviewUrl(null)
       return
     }
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setImageError('La imagen debe ser JPG, PNG o WebP.')
-      e.target.value = ''
-      return
+    setPreparingImage(true)
+    try {
+      // Reduce las fotos pesadas y borra su ubicación GPS antes de subirlas
+      const ready = await prepareImage(file)
+      setImageFile(ready)
+      setPreviewUrl(URL.createObjectURL(ready))
+    } catch (err) {
+      setImageError(err instanceof PrepareImageError ? err.message : 'No pudimos preparar la imagen. Prueba con otra.')
+      input.value = ''
+    } finally {
+      setPreparingImage(false)
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setImageError('La imagen no puede pesar más de 5 MB.')
-      e.target.value = ''
-      return
-    }
-    setImageFile(file)
-    setPreviewUrl(URL.createObjectURL(file))
   }
 
   const form = useForm<EventFormValues>({
@@ -198,7 +201,7 @@ export function EventForm({ event, organizerName }: EventFormProps) {
               name="isFree"
               render={({ field }) => (
                 <label className="flex cursor-pointer items-center gap-3 text-sm font-medium">
-                  <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(v === true)} />
+                  <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(v === true)} aria-label="El evento es gratuito" />
                   El evento es gratuito
                 </label>
               )}
@@ -228,15 +231,25 @@ export function EventForm({ event, organizerName }: EventFormProps) {
               className="aspect-[16/10] w-full rounded-xl sm:w-64"
             />
             <div className="flex flex-1 flex-col gap-3">
-              <Field id="image" label="Subir imagen de portada" optional hint="JPG, PNG o WebP de máximo 5 MB. Usa fotos propias o de uso libre, con su crédito.">
+              <Field
+                id="image"
+                label="Subir imagen de portada"
+                optional
+                hint="Usa fotos propias o de uso libre, con su crédito. Las reducimos automáticamente y les quitamos la ubicación GPS."
+              >
                 {(a) => (
                   <div className="flex items-center gap-2">
-                    <ImagePlus className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    {preparingImage ? (
+                      <Loader2 className="size-5 shrink-0 animate-spin text-muted-foreground" aria-hidden="true" />
+                    ) : (
+                      <ImagePlus className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    )}
                     <input
                       {...a}
                       type="file"
-                      accept="image/jpeg,image/png,image/webp"
+                      accept="image/*"
                       onChange={onImageChange}
+                      disabled={preparingImage}
                       className={nativeFieldClass + ' py-1.5 file:mr-3'}
                     />
                   </div>
@@ -249,7 +262,11 @@ export function EventForm({ event, organizerName }: EventFormProps) {
               )}
               {event?.imageUrl && !imageFile && (
                 <label className="flex cursor-pointer items-center gap-3 text-sm font-medium">
-                  <Checkbox checked={removeImage} onCheckedChange={(v) => setRemoveImage(v === true)} />
+                  <Checkbox
+                    checked={removeImage}
+                    onCheckedChange={(v) => setRemoveImage(v === true)}
+                    aria-label="Quitar la imagen actual y usar la portada ilustrada"
+                  />
                   Quitar la imagen actual y usar la portada ilustrada
                 </label>
               )}
@@ -264,7 +281,7 @@ export function EventForm({ event, organizerName }: EventFormProps) {
             Cancelar
           </Button>
           {(!event || event.status === 'borrador') && (
-            <Button type="button" variant="outline" onClick={submit('borrador')} disabled={pending}>
+            <Button type="button" variant="outline" onClick={submit('borrador')} disabled={pending || preparingImage}>
               {busy('borrador') && <Loader2 className="animate-spin" aria-hidden="true" />}
               Guardar borrador
             </Button>
@@ -274,14 +291,14 @@ export function EventForm({ event, organizerName }: EventFormProps) {
               type="button"
               variant={event.status === 'publicado' ? 'default' : 'outline'}
               onClick={submit(event.status)}
-              disabled={pending}
+              disabled={pending || preparingImage}
             >
               {busy(event.status) && <Loader2 className="animate-spin" aria-hidden="true" />}
               Guardar cambios
             </Button>
           )}
           {(!event || event.status !== 'publicado') && (
-            <Button type="button" onClick={submit('publicado')} disabled={pending}>
+            <Button type="button" onClick={submit('publicado')} disabled={pending || preparingImage}>
               {busy('publicado') && <Loader2 className="animate-spin" aria-hidden="true" />}
               {event?.status === 'cancelado' ? 'Reactivar y publicar' : 'Publicar'}
             </Button>

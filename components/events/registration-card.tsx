@@ -172,8 +172,13 @@ export function RegistrationCard({ event, profile, registration, isPast, googleU
                 </div>
 
                 <label className="flex cursor-pointer items-start gap-3 text-sm">
-                  <Checkbox checked={accepted} onCheckedChange={(v) => setAccepted(v === true)} className="mt-0.5" />
-                  <span className="text-pretty">
+                  <Checkbox
+                    checked={accepted}
+                    onCheckedChange={(v) => setAccepted(v === true)}
+                    className="mt-0.5"
+                    aria-labelledby="reg-consent-text"
+                  />
+                  <span id="reg-consent-text" className="text-pretty">
                     Acepto que la organización use mis datos para gestionar mi asistencia y enviarme recordatorios de este
                     evento.
                   </span>
