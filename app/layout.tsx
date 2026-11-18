@@ -1,6 +1,8 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Figtree, Fraunces } from 'next/font/google'
+import { AmbientLife } from '@/components/ambient/ambient-life'
+import { INTRO_SCRIPT, LeafIntro } from '@/components/ambient/leaf-intro'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { SiteHeader } from '@/components/layout/site-header'
 import { ThemeProvider } from '@/components/layout/theme-provider'
@@ -37,7 +39,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning className={`${figtree.variable} ${fraunces.variable} bg-background`}>
-      <body className="flex min-h-dvh flex-col font-sans antialiased">
+      <body className="flex min-h-dvh flex-col bg-transparent font-sans antialiased">
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+        <LeafIntro />
+        <AmbientLife />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <a
             href="#contenido"

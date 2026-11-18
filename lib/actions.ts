@@ -278,28 +278,32 @@ function toRow(fields: ReturnType<typeof formValuesToEventFields>) {
   }
 }
 
-/** Sube la portada al bucket event-images/{uid}/… y devuelve su URL pública. */
-async function uploadCover(
+/** Sube una imagen al bucket event-images/{uid}/{carpeta}… y devuelve su URL pública y ruta. */
+async function uploadImage(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   formData: FormData,
-): Promise<{ url?: string | null; error?: string }> {
+  folder = '',
+): Promise<{ url?: string | null; path?: string | null; error?: string }> {
   const file = formData.get('image')
   if (!(file instanceof File) || file.size === 0) return {}
   const ext = IMAGE_TYPES[file.type]
   if (!ext) return { error: 'La imagen debe ser JPG, PNG o WebP.' }
   if (file.size > MAX_IMAGE_BYTES) return { error: 'La imagen no puede pesar más de 5 MB.' }
 
-  const path = `${userId}/${randomUUID()}.${ext}`
+  const path = `${userId}/${folder ? `${folder}/` : ''}${randomUUID()}.${ext}`
   const { error } = await supabase.storage
     .from('event-images')
     .upload(path, file, { contentType: file.type, cacheControl: '31536000', upsert: false })
   if (error) {
-    console.error('[uploadCover]', error.message)
+    console.error('[uploadImage]', error.message)
     return { error: 'No pudimos subir la imagen. Intenta con otra.' }
   }
-  return { url: supabase.storage.from('event-images').getPublicUrl(path).data.publicUrl }
+  return { url: supabase.storage.from('event-images').getPublicUrl(path).data.publicUrl, path }
 }
+
+const uploadCover = (supabase: Awaited<ReturnType<typeof createClient>>, userId: string, formData: FormData) =>
+  uploadImage(supabase, userId, formData)
 
 async function requireOrganizer() {
   const profile = await getCurrentProfile()
@@ -413,5 +417,82 @@ export async function deleteEvent(id: number): Promise<ActionResult> {
   if (!data) return { ok: false, error: 'No encontramos este evento.' }
 
   revalidateEventPages(data.slug)
+  return { ok: true }
+}
+
+// ---------------------------------------------------------------------------
+// Fotos y comentarios de asistentes
+// ---------------------------------------------------------------------------
+
+export async function createEventPost(eventId: number, formData: FormData): Promise<ActionResult> {
+  const profile = await getCurrentProfile()
+  if (!profile) return { ok: false, error: 'Inicia sesión para compartir.' }
+
+  const body = text(formData, 'body').slice(0, 1000)
+  const imageAlt = text(formData, 'imageAlt').slice(0, 200)
+  const file = formData.get('image')
+  const hasImage = file instanceof File && file.size > 0
+  if (!body && !hasImage) return { ok: false, error: 'Escribe un comentario o agrega una foto.' }
+
+  const supabase = await createClient()
+  const { data: event } = await supabase.from('events').select('id, slug, organizer_id').eq('id', eventId).maybeSingle()
+  if (!event) return { ok: false, error: 'Este evento ya no está disponible.' }
+
+  // Verificación amable antes de subir la foto; RLS lo vuelve a validar al insertar.
+  if (event.organizer_id !== profile.id) {
+    const { data: reg } = await supabase
+      .from('registrations')
+      .select('status')
+      .eq('event_id', eventId)
+      .eq('user_id', profile.id)
+      .maybeSingle()
+    if (reg?.status !== 'confirmada') {
+      return { ok: false, error: 'Solo las personas inscritas en este evento pueden publicar.' }
+    }
+  }
+
+  const image = await uploadImage(supabase, profile.id, formData, 'posts')
+  if (image.error) return { ok: false, error: image.error }
+
+  const { error } = await supabase.from('event_posts').insert({
+    event_id: eventId,
+    user_id: profile.id,
+    body: body || null,
+    image_url: image.url ?? null,
+    image_path: image.path ?? null,
+    image_alt: hasImage ? imageAlt || null : null,
+  })
+
+  if (error) {
+    if (image.path) await supabase.storage.from('event-images').remove([image.path])
+    return { ok: false, error: dbErrorMessage(error, 'No pudimos publicar. Inténtalo de nuevo.') }
+  }
+
+  revalidatePath(`/eventos/${event.slug}`)
+  return { ok: true }
+}
+
+export async function deleteEventPost(postId: number): Promise<ActionResult> {
+  const profile = await getCurrentProfile()
+  if (!profile) return { ok: false, error: 'Inicia sesión para continuar.' }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('event_posts')
+    .delete()
+    .eq('id', postId)
+    .select('event_id, user_id, image_path')
+    .maybeSingle()
+
+  if (error) return { ok: false, error: dbErrorMessage(error, 'No pudimos eliminar la publicación.') }
+  if (!data) return { ok: false, error: 'No puedes eliminar esta publicación.' }
+
+  // El autor puede borrar su archivo (las políticas de Storage solo permiten su carpeta).
+  if (data.image_path && data.user_id === profile.id) {
+    await supabase.storage.from('event-images').remove([data.image_path])
+  }
+
+  const { data: event } = await supabase.from('events').select('slug').eq('id', data.event_id).maybeSingle()
+  if (event) revalidatePath(`/eventos/${event.slug}`)
   return { ok: true }
 }

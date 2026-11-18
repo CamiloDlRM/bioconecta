@@ -11,8 +11,11 @@ import {
   MapPin,
   Monitor,
   Navigation,
+  Pencil,
+  ShieldCheck,
   Ticket,
   User,
+  Users,
 } from 'lucide-react'
 import { CapacityBar } from '@/components/events/capacity-bar'
 import { EventCover } from '@/components/events/event-cover'
@@ -21,7 +24,8 @@ import { TypeBadge } from '@/components/events/type-badge'
 import { EventMap } from '@/components/map/lazy-maps'
 import { FootprintCard } from '@/components/sustainability/footprint-card'
 import { buttonVariants } from '@/components/ui/button'
-import { getCurrentProfile, getEventBySlug, getMyRegistrationForEvent } from '@/lib/data'
+import { EventPostsSection } from '@/components/events/event-posts-section'
+import { getCurrentProfile, getEventBySlug, getEventPosts, getMyRegistrationForEvent } from '@/lib/data'
 import { googleCalendarUrl, icsPath } from '@/lib/calendar'
 import { MODALITY_LABELS } from '@/lib/event-types'
 import { formatDuration, formatEventRange, formatLongDate, isPast } from '@/lib/format'
@@ -55,7 +59,12 @@ export default async function EventDetailPage({ params }: { params: Promise<Para
   const event = await getEventBySlug(slug)
   if (!event) notFound()
 
-  const [profile, registration] = await Promise.all([getCurrentProfile(), getMyRegistrationForEvent(event.id)])
+  const [profile, registration, posts] = await Promise.all([
+    getCurrentProfile(),
+    getMyRegistrationForEvent(event.id),
+    getEventPosts(event),
+  ])
+  const isOwner = Boolean(profile && event.organizerId === profile.id)
 
   const hasCoords = event.latitude !== null && event.longitude !== null
   const directionsUrl = hasCoords
@@ -103,7 +112,7 @@ export default async function EventDetailPage({ params }: { params: Promise<Para
 
           <dl className="grid gap-5 rounded-2xl border border-border bg-card p-6 sm:grid-cols-2">
             <Fact icon={CalendarDays} label="Fecha y hora">
-              <span className="capitalize">{formatLongDate(event.startsAt)}</span>
+              <span className="inline-block first-letter:uppercase">{formatLongDate(event.startsAt)}</span>
               <br />
               <span className="text-sm font-normal text-muted-foreground">
                 {formatEventRange(event.startsAt, event.endsAt)}
@@ -222,10 +231,37 @@ export default async function EventDetailPage({ params }: { params: Promise<Para
           )}
 
           <FootprintCard event={event} />
+
+          <EventPostsSection event={event} posts={posts} profile={profile} isRegistered={Boolean(registration)} />
         </article>
 
         <aside aria-label="Inscripción" className="lg:sticky lg:top-24">
           <div className="flex flex-col gap-4">
+            {isOwner && (
+              <div className="flex flex-col gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-5">
+                <p className="flex items-center gap-2 font-display text-lg font-semibold">
+                  <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
+                  Eres el organizador
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {event.registeredCount === 1 ? '1 persona inscrita' : `${event.registeredCount} personas inscritas`}
+                  {event.capacity ? ` de ${event.capacity} cupos` : ''}.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Link href={`/organizador/eventos/${event.id}/inscritos`} className={cn(buttonVariants({ size: 'sm' }))}>
+                    <Users aria-hidden="true" />
+                    Ver inscritos
+                  </Link>
+                  <Link
+                    href={`/organizador/eventos/${event.id}/editar`}
+                    className={cn(buttonVariants({ size: 'sm', variant: 'outline' }))}
+                  >
+                    <Pencil aria-hidden="true" />
+                    Editar
+                  </Link>
+                </div>
+              </div>
+            )}
             <div className="rounded-2xl border border-border bg-card p-5">
               <h2 className="font-display text-lg font-semibold">Cupos</h2>
               <CapacityBar event={event} showCounts className="mt-3" />

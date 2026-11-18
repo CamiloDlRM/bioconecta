@@ -32,3 +32,8 @@ export interface EventItem {
 export interface Registration { id: number; eventId: number; userId: string; fullName: string; email: string; phone: string | null; status: 'confirmada' | 'cancelada'; createdAt: string }
 export interface Profile { id: string; fullName: string; email: string; role: Role; organizationName: string | null; organizationType: OrganizationType | null }
 export interface EventFilters { q?: string; types?: EventType[]; city?: string; from?: string; to?: string; modality?: Modality; freeOnly?: boolean; when?: 'hoy' | 'fin-de-semana' | 'semana' | 'mes' }
+export interface EventPost {
+  id: number; eventId: number; userId: string; authorName: string
+  body: string | null; imageUrl: string | null; imageAlt: string | null; createdAt: string
+  isOrganizer: boolean
+}

@@ -103,6 +103,44 @@ export type Database = {
           },
         ]
       }
+      event_posts: {
+        Row: {
+          author_name: string
+          body: string | null
+          created_at: string
+          event_id: number
+          id: number
+          image_alt: string | null
+          image_path: string | null
+          image_url: string | null
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          event_id: number
+          image_alt?: string | null
+          image_path?: string | null
+          image_url?: string | null
+          user_id: string
+        }
+        Update: Record<string, never>
+        Relationships: [
+          {
+            foreignKeyName: 'event_posts_event_id_fkey'
+            columns: ['event_id']
+            isOneToOne: false
+            referencedRelation: 'events'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'event_posts_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       profiles: {
         Row: {
           bio: string | null

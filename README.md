@@ -31,7 +31,17 @@ Docente: Yolanda Celis Pacheco.
 
 **Organizadores** (fundaciones, universidades, colectivos, entidades)
 - Crear cuenta como organizador y **publicar eventos** (con selector de ubicación en el mapa).
-- Ver y **exportar a CSV la lista de inscritos**; editar, cancelar o eliminar sus eventos.
+- Ver y **exportar a CSV la lista de inscritos** (desde el panel o con el acceso directo en la página del evento);
+  editar, cancelar o eliminar sus eventos.
+
+**Comunidad**
+- Las personas inscritas (y el organizador) pueden publicar **fotos y comentarios** en cada evento.
+  Cualquiera puede verlos; el autor o el organizador pueden eliminarlos. Las fotos van a Supabase Storage.
+
+**Experiencia visual**
+- Entrada "atravesando el follaje" con hojas de mangle (una vez por sesión).
+- Pájaros volando en el tema claro y luciérnagas en el tema oscuro, detrás del contenido y sin bloquear clics.
+- Todo se desactiva automáticamente si el sistema tiene activado "reducir movimiento".
 
 **Ficha de sostenibilidad** (elemento diferenciador)
 - Cada evento presencial muestra una estimación de su **huella de carbono** (transporte de asistentes,

@@ -2,7 +2,7 @@ import 'server-only'
 import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { EVENT_COLUMNS, rowToEvent, rowToProfile, rowToRegistration } from '@/lib/supabase/mappers'
-import type { EventFilters, EventItem, Profile, Registration } from '@/lib/types'
+import type { EventFilters, EventItem, EventPost, Profile, Registration } from '@/lib/types'
 
 /*
  * Capa de datos (backend). Todas las consultas usan la sesión del usuario,
@@ -215,4 +215,30 @@ export async function getEventRegistrations(eventId: number): Promise<Registrati
     .order('created_at', { ascending: true })
   if (error) console.error('[getEventRegistrations]', error.message)
   return (data ?? []).map(rowToRegistration)
+}
+
+/** Fotos y comentarios de asistentes (lectura pública), del más reciente al más antiguo. */
+export async function getEventPosts(event: Pick<EventItem, 'id' | 'organizerId'>): Promise<EventPost[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('event_posts')
+    .select('id, event_id, user_id, author_name, body, image_url, image_alt, created_at')
+    .eq('event_id', event.id)
+    .order('created_at', { ascending: false })
+    .limit(100)
+  if (error) {
+    console.error('[getEventPosts]', error.message)
+    return []
+  }
+  return (data ?? []).map((p) => ({
+    id: p.id,
+    eventId: p.event_id,
+    userId: p.user_id,
+    authorName: p.author_name,
+    body: p.body,
+    imageUrl: p.image_url,
+    imageAlt: p.image_alt,
+    createdAt: p.created_at,
+    isOrganizer: event.organizerId !== null && p.user_id === event.organizerId,
+  }))
 }
